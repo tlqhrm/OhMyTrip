@@ -29,6 +29,14 @@
       </q-list>
     </q-drawer>
 
+    <q-footer bordered class="bg-white text-primary">
+        <q-tabs no-caps active-color="primary" indicator-color="transparent" class="text-grey" v-model="tab">
+          <q-route-tab name="images" label="Images" to="/" />
+          <q-route-tab name="videos" label="Videos" to="/" />
+          <q-route-tab name="articles" label="Articles" to="/" />
+        </q-tabs>
+      </q-footer>
+
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -93,14 +101,19 @@ export default defineComponent({
   },
 
   setup() {
+    const tab = ref('images');
     const leftDrawerOpen = ref(false);
 
+    const essentialLinks = linksList;
+
+    const toggleLeftDrawer = () =>{
+      leftDrawerOpen.value = !leftDrawerOpen.value;
+    }
     return {
-      essentialLinks: linksList,
+      tab,
+      essentialLinks,
       leftDrawerOpen,
-      toggleLeftDrawer() {
-        leftDrawerOpen.value = !leftDrawerOpen.value;
-      },
+      toggleLeftDrawer,
     };
   },
 });
