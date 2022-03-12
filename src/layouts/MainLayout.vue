@@ -1,6 +1,6 @@
 <template>
   <q-layout view="lHh Lpr lFf">
-    <q-header elevated>
+    <!-- <q-header elevated>
       <q-toolbar>
         <q-btn
           flat
@@ -15,8 +15,19 @@
 
         <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
-    </q-header>
-
+    </q-header> -->
+    <q-footer bordered class="bg-white text-primary">
+        <q-tabs 
+          active-color="primary"
+          indicator-color="transparent"
+          class="text-grey"
+          no-caps
+        >
+          <q-route-tab name="images" label="Images" to="/images" />
+          <q-route-tab name="map" label="지도" to="/map" />
+          <q-route-tab name="articles" label="Articles" to="/articles" />
+        </q-tabs>
+    </q-footer>
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
         <q-item-label header> Essential Links </q-item-label>
@@ -29,16 +40,24 @@
       </q-list>
     </q-drawer>
 
-    <q-footer bordered class="bg-white text-primary">
-        <q-tabs no-caps active-color="primary" indicator-color="transparent" class="text-grey" v-model="tab">
-          <q-route-tab name="images" label="Images" to="/" />
-          <q-route-tab name="videos" label="Videos" to="/" />
-          <q-route-tab name="articles" label="Articles" to="/" />
-        </q-tabs>
-      </q-footer>
+    
 
     <q-page-container>
-      <router-view />
+      <router-view v-slot="{ Component }">
+      <transition
+        appear
+        enter-active-class="animated fadeIn"
+        
+      >
+        <keep-alive>
+          <component
+           @pageActivated="hasActiveChildPage = true"
+            @pageDeactivated="hasActiveChildPage = false"
+            :is="Component"
+          />
+        </keep-alive>
+      </transition>
+    </router-view>
     </q-page-container>
   </q-layout>
 </template>
@@ -91,7 +110,7 @@ const linksList = [
   },
 ];
 
-import { defineComponent, ref } from "vue";
+import { defineComponent, ref, onActivated, onDeactivated } from "vue";
 
 export default defineComponent({
   name: "MainLayout",
@@ -100,7 +119,20 @@ export default defineComponent({
     EssentialLink,
   },
 
+  
   setup() {
+
+    let hasActiveChildPage = ref(false)
+
+    onActivated(() => {
+      emit('pageActivated')
+    })
+
+    onDeactivated(() => {
+      emit('pageDeactivated')
+
+    })
+
     const tab = ref('images');
     const leftDrawerOpen = ref(false);
 
@@ -114,6 +146,7 @@ export default defineComponent({
       essentialLinks,
       leftDrawerOpen,
       toggleLeftDrawer,
+      hasActiveChildPage
     };
   },
 });
