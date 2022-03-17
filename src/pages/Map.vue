@@ -16,7 +16,10 @@
       </template>
     </q-input> -->
     <q-header elevated style="height:40px">
-        {{state.addressName}}
+        <!-- {{state.addressName}} -->
+        <span v-for="item in state.addressJSON" :key="item">
+          {{item}}
+        </span>
     </q-header>
     <q-btn @click="search()" class="search" unelevated align="left" style="background: white; color: black" label="검색" icon="search" />
 
@@ -52,6 +55,7 @@
 import { onMounted, ref } from "vue";
 import { useQuasar } from 'quasar'
 import src from '../assets/markers.png';
+import addressJSON from '../assets/address.json';
 import axios from 'axios';
 
 export default ({
@@ -61,29 +65,24 @@ export default ({
       src : src,
       markerXY : [],
       CenterXY : null,
-      test : {
-        a : 1,
-        b : 2,
-        c : {
-          a:3,
-          b:4,
-          c:{
-            a:5,
-            b:6,
-            c:[{
-              a:7,
-              b:8,
-              c:[{
-                a:9,
-                b:10
-              }]
-            }]
-          }
+      
+      test:{
+        a:1,
+        b:2,
+        c:{
+          a:1
         }
       }
-
     }
     const state = ref({
+      addressJSON : addressJSON.data.deep1,
+      test:{
+        a:1,
+        b:2,
+        c:{
+          a:1
+        }
+      },
       //카카오 map 객체 
       map : null,
       //지도 bounds 값들
@@ -126,7 +125,9 @@ export default ({
       state.value.ps = new kakao.maps.services.Places();  
       // dragend(); //dragend 이벤트리스너
       zoomChanged(); //zoomChanged 이벤트리스너
-      console.log()
+      for(let key in addressJSON.data.deep1){
+        console.log(key);
+      }
     }  
 
     const dragend = () => {
