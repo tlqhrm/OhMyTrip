@@ -15,11 +15,58 @@
         <q-icon name="search" />
       </template>
     </q-input> -->
-    <q-header elevated style="height:40px">
+    <q-header elevated style="height:41px">
         <!-- {{state.addressName}} -->
-        <span v-for="item in state.addressJSON" :key="item">
-          {{item}}
-        </span>
+        <!-- <span v-for="(value, name, index) in state.addressJSON.data.deep1" :key="index">
+          {{name}},{{value}}
+        </span> -->
+        
+        <q-breadcrumbs active-color="white" style="font-size: 14px; margin:2px 0px 0px 5px;">
+            <template v-slot:separator>
+              <q-icon
+                size="1.5em"
+                name="chevron_right"
+                color="white"
+              />
+            </template>
+            <q-select
+              class="select"
+              behavior="menu" 
+              dense
+              option-dense
+              hide-bottom-space
+              options-selected-class="text-red"
+              v-model="state.model" 
+              :options="G.test" 
+            />
+            <q-breadcrumbs-el >
+              
+            </q-breadcrumbs-el>           
+            <q-breadcrumbs-el :label="state.depth2+' 🞃'">
+            <q-menu auto-close 
+                transition-show="jump-down"
+                transition-hide="jump-up"
+              >
+              <q-list style="min-width: 100px">
+                <q-item clickable>
+                  <q-item-section>New tab</q-item-section>
+                </q-item>    
+              </q-list>
+            </q-menu>
+            </q-breadcrumbs-el>
+            <q-breadcrumbs-el :label="state.depth3+' 🞃'">
+              <q-menu auto-close 
+                transition-show="jump-down"
+                transition-hide="jump-up"
+              >
+              <q-list style="min-width: 100px">
+                <q-item clickable>
+                  <q-item-section>New tab</q-item-section>
+                </q-item>               
+              </q-list>
+            </q-menu>
+            </q-breadcrumbs-el>
+          </q-breadcrumbs>
     </q-header>
     <q-btn @click="search()" class="search" unelevated align="left" style="background: white; color: black" label="검색" icon="search" />
 
@@ -65,24 +112,17 @@ export default ({
       src : src,
       markerXY : [],
       CenterXY : null,
+      test : [
+        '경기도','서울특별시','제주특별시'
+      ]
       
-      test:{
-        a:1,
-        b:2,
-        c:{
-          a:1
-        }
-      }
     }
     const state = ref({
-      addressJSON : addressJSON.data.deep1,
-      test:{
-        a:1,
-        b:2,
-        c:{
-          a:1
-        }
-      },
+      model : null,
+      addressJSON : addressJSON,
+      depth1 : '경기도',
+      depth2 : '화성시',
+      depth3 : '반월동',
       //카카오 map 객체 
       map : null,
       //지도 bounds 값들
@@ -122,23 +162,31 @@ export default ({
           zIndex:1,
           removable: true,
         });
-      state.value.ps = new kakao.maps.services.Places();  
-      // dragend(); //dragend 이벤트리스너
+      state.value.ps = new kakao.maps.services.Places();
+      getAddress();  
+      dragend(); //dragend 이벤트리스너
       zoomChanged(); //zoomChanged 이벤트리스너
-      for(let key in addressJSON.data.deep1){
-        console.log(key);
-      }
+
+      console.log(state.value.addressJSON.data.deep1);
+      
+      document.querySelector('.q-field__native').style.color = "white";
+      document.querySelector('.q-select__dropdown-icon').style.color = "white";
     }  
 
     const dragend = () => {
       kakao.maps.event.addListener(state.value.map, 'dragend', function() {             
-        
+        getAddress();
       });
     }
     const zoomChanged = () =>{
+      kakao.maps.event.addListener(state.value.map, 'zoom_changed', function() {
+        getAddress();
+      });
+    }
+    const getAddress = () =>{
       let latlng; 
       console.log(state.value.map.getCenter());
-      kakao.maps.event.addListener(state.value.map, 'dragend', function() {  
+        
         latlng = state.value.map.getCenter();       
 
         axios.get('https://dapi.kakao.com/v2/local/geo/coord2regioncode.json',{
@@ -149,12 +197,13 @@ export default ({
             y : latlng.getLat()
           }          
         }).then((response) => {
-          state.value.addressName = response.data.documents[1].address_name;
-          console.log(response.data.documents[1]);
+          state.value.depth1 = response.data.documents[1].region_1depth_name;
+          state.value.depth2 = response.data.documents[1].region_2depth_name;
+          state.value.depth3 = response.data.documents[1].region_3depth_name;
+          console.log(state.value.depth1);
         }) 
-      });
+      
     }
-
     const myLocation = () => {
       if (navigator.geolocation) {
     
@@ -170,7 +219,8 @@ export default ({
           // 마커와 인포윈도우를 표시합니다
           // displayMarker(locPosition, message);
           
-          state.value.map.setCenter(locPosition)
+          state.value.map.setCenter(locPosition);
+          getAddress();
         });
         
       } else { // HTML5의 GeoLocation을 사용할 수 없을때 마커 표시 위치와 인포윈도우 내용을 설정합니다
@@ -350,4 +400,11 @@ export default ({
     /* border-top: 2px solid rgba(0, 0, 0, 0.5);  */
     margin-bottom: 35px;
   }
+  .select{
+    color: blue;
+    position: relative;
+    top: -1px;
+    margin-right: -10px;
+  }
+
 </style>
